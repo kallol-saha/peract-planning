@@ -82,10 +82,10 @@ class OfflineTrainRunner():
         self._agent.save_weights(d)
 
         # remove oldest save
-        prev_dir = os.path.join(self._weightsdir, str(
-            i - self._save_freq * self._num_weights_to_keep))
-        if os.path.exists(prev_dir):
-            shutil.rmtree(prev_dir)
+        # prev_dir = os.path.join(self._weightsdir, str(
+        #     i - self._save_freq * self._num_weights_to_keep))
+        # if os.path.exists(prev_dir):
+        #     shutil.rmtree(prev_dir)
 
     def _step(self, i, sampled_batch):
         update_dict = self._agent.update(i, sampled_batch)
