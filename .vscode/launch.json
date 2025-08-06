@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Data Generator",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--tasks=put_groceries_in_cupboard",
+                "--save_path=/data/kallol/PerAct/peract_data",
+                "--image_size=256,256",
+                "--renderer=opengl",
+                "--episodes_per_task=5",
+                "--processes=1",
+                "--all_variations=True"
+            ]
+        },
+        {
+            "name": "Inference",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "rlbench.tasks=[open_drawer]",
+                "rlbench.task_name=multi",
+                "rlbench.demo_path=/data/kallol/peract_val",
+                "framework.gpu=0",
+                "framework.logdir=/home/ksaha/Research/ModelBasedPlanning/PriorWork/peract/ckpts",
+                "framework.start_seed=0",
+                "framework.eval_envs=1",
+                "framework.eval_from_eps_number=0",
+                "framework.eval_episodes=10",
+                "framework.csv_logging=True",
+                "framework.tensorboard_logging=True",
+                "framework.eval_type=last",
+                "rlbench.headless=False"
+            ]
+        }
+    ]
+}

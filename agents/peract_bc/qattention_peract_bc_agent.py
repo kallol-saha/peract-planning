@@ -13,7 +13,7 @@ from yarr.agents.agent import Agent, ActResult, ScalarSummary, \
     HistogramSummary, ImageSummary, Summary
 
 from helpers import utils
-from helpers.utils import visualise_voxel, stack_on_channel
+from helpers.utils import visualise_voxel, stack_on_channel, point_to_voxel_index
 from voxel.voxel_grid import VoxelGrid
 from voxel.augmentation import apply_se3_augmentation
 from einops import rearrange
@@ -23,6 +23,8 @@ import transformers
 from helpers.optim.lamb import Lamb
 
 from torch.nn.parallel import DistributedDataParallel as DDP
+
+from helpers.vis_utils import plot_voxel_grid_with_action_cubes
 
 NAME = 'QAttentionAgent'
 
@@ -106,7 +108,7 @@ class QFunction(nn.Module):
 
         return q_trans, q_rot_and_grip, q_ignore_collisions, voxel_grid
 
-
+# !!! Main Agent Model Class
 class QAttentionPerActBCAgent(Agent):
 
     def __init__(self,
@@ -513,10 +515,23 @@ class QAttentionPerActBCAgent(Agent):
         else:
             prev_layer_bounds = prev_layer_bounds + [bounds]
 
+        # if step % 99 == 0:
+            # Visualization:
+        action_voxels = torch.cat([coords[0][None], action_trans[0][None]], dim=0)
+        action_colors = torch.zeros_like(action_voxels, dtype=torch.float32)
+        action_colors[0, 0] = 255.
+        action_colors[1, 1] = 255.
+            # plot_voxel_grid_with_action(voxel_grid[0], action_voxels, action_colors)
+
+            # plot_voxel_grid_with_action_cubes(voxel_grid[0], action_voxels, action_colors)
+        
         return {
             'total_loss': total_loss,
             'prev_layer_voxel_grid': prev_layer_voxel_grid,
             'prev_layer_bounds': prev_layer_bounds,
+            'voxel_grid': voxel_grid,
+            'action_voxels': action_voxels,
+            'action_colors': action_colors,
         }
 
     def act(self, step: int, observation: dict,

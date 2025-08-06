@@ -5,22 +5,24 @@ ddp:
 
 rlbench:
     task_name: "multi"
-    tasks: [open_drawer,slide_block_to_color_target]
-    demos: 100
-    demo_path: /my/demo/path
+    tasks: [put_groceries_in_cupboard]
+    # tasks: [open_drawer]
+    variation_number: -1        # -1 for all variations
+    demos: 2                  # Make sure this is not more that the number of demos in the dataset
+    demo_path: /data/kallol/PerAct/peract_data/   # Training dataset
     episode_length: 25
     cameras: [front,left_shoulder,right_shoulder,wrist]
-    camera_resolution: [128, 128]
+    camera_resolution: [256, 256]
     scene_bounds: [-0.3, -0.5, 0.6, 0.7, 0.5, 1.6]
     include_lang_goal_in_obs: True
 
 replay:
-    batch_size: 8
+    batch_size: 2
     timesteps: 1
     prioritisation: False
     task_uniform: True # uniform sampling of tasks for multi-task buffers
-    use_disk: True
-    path: '/tmp/arm/replay' # only used when use_disk is True.
+    use_disk: True          # Whether the replay buffer should be saved to disk and then loaded back for training.
+    path: '/data/kallol/PerAct/peract_train_log/replay' # only used when use_disk is True, this is where the replay buffer data will be saved.
     max_parallel_processes: 32
 
 framework:
@@ -34,7 +36,7 @@ framework:
     training_iterations: 40000
     gpu: 0
     env_gpu: 0
-    logdir: '/tmp/arm_test/'
+    logdir: '/data/kallol/PerAct/peract_train_log/'
     logging_level: 20 # https://docs.python.org/3/library/logging.html#levels
     seeds: 1
     start_seed: 0
@@ -44,7 +46,7 @@ framework:
     record_every_n: 5
 
 defaults:
-    - method: C2FARM
+    - method: PERACT_BC
 
 hydra:
     run:

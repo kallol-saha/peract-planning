@@ -86,7 +86,7 @@ def create_replay(batch_size: int, timesteps: int,
     ])
 
     extra_replay_elements = [
-        ReplayElement('demo', (), np.bool),
+        ReplayElement('demo', (), bool),
     ]
 
     replay_buffer = TaskUniformReplayBuffer(
@@ -235,6 +235,7 @@ def fill_replay(cfg: DictConfig,
         del model
 
     logging.debug('Filling %s replay ...' % task)
+    print("FILLING REPLAY !!!!")
     for d_idx in range(num_demos):
         # load demo from disk
         demo = rlbench_utils.get_stored_demos(
