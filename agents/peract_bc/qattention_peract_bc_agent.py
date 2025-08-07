@@ -185,7 +185,7 @@ class QAttentionPerActBCAgent(Agent):
             coord_bounds=self._coordinate_bounds,
             voxel_size=self._voxel_size,
             device=device,
-            batch_size=self._batch_size if training else 1,
+            batch_size=self._batch_size, # if training else 1,
             feature_size=self._voxel_feature_size,
             max_num_coords=np.prod(self._image_resolution) * self._num_cameras,
         )
