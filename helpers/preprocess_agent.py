@@ -84,6 +84,8 @@ class PreprocessAgent(Agent):
         return self._pose_agent.act_summaries()
 
     def load_weights(self, savedir: str):
+        # print("!!!!!!!!!!!!!!!!!!! LOADING WEIGHTS: ", savedir)
+        # _ = input("Press Enter to continue...")
         self._pose_agent.load_weights(savedir)
 
     def save_weights(self, savedir: str):
