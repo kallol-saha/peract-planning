@@ -294,7 +294,7 @@ def render_360_gif(structures: structures,
     print(f"Center of rotation: {center_of_rotation}")
     print(f"Rotation axis (up_vector): {up_vector}")
     
-    for azim in tqdm(azims):
+    for azim in azims:
         R, T = look_at_view_transform(
             dist=dist, 
             elev=elev, 

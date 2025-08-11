@@ -7,11 +7,8 @@ from pytorch3d.structures import Pointclouds
 
 from helpers.vis_utils import render_360_gif, voxel_points_and_features_from_voxel_grid
 
-
-
-
 epoch_num = 34000
-weights_dir = '/data/kallol/PerAct/peract_train_log/multi/PERACT_BC/seed0/weights'
+weights_dir = '/data/ModelBasedPlanning/PerAct/peract_train_log/multi/PERACT_BC/seed0/weights'
 # all_epochs = os.listdir(weights_dir)
 
 # for epoch in all_epochs:
