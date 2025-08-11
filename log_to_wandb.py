@@ -9,9 +9,9 @@ from pytorch3d.structures import Pointclouds
 
 from helpers.vis_utils import render_360_gif, voxel_points_and_features_from_voxel_grid
 
-wandb.init(project="PerAct_Planning_All_Objects", name=f"run_0")
+wandb.init(project="PerAct_Planning_All_Objects", name=f"run_0_local")
 
-weights_dir = '/data/ModelBasedPlanning/PerAct/peract_train_log/multi/PERACT_BC/seed0/weights'
+weights_dir = '/data/kallol/PerAct/peract_train_log/multi/PERACT_BC/seed0/weights'
 all_epochs = os.listdir(weights_dir)
 # COnvert list of strs to list of ints:
 all_epochs = [int(epoch) for epoch in all_epochs]
