@@ -24,7 +24,7 @@ from helpers.optim.lamb import Lamb
 
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from helpers.vis_utils import plot_voxel_grid_with_action_cubes
+from helpers.vis_utils import plot_voxel_grid_with_action_cubes, plot_pcd
 
 NAME = 'QAttentionAgent'
 
