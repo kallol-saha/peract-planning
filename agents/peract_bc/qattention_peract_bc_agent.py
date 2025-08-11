@@ -24,7 +24,7 @@ from helpers.optim.lamb import Lamb
 
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from helpers.vis_utils import plot_voxel_grid_with_action_cubes
+from helpers.vis_utils import plot_voxel_grid_with_action_cubes, plot_pcd
 
 NAME = 'QAttentionAgent'
 
@@ -627,41 +627,12 @@ class QAttentionPerActBCAgent(Agent):
                          info=info)
 
     def update_summaries(self) -> List[Summary]:
-        summaries = [
-            ImageSummary('%s/update_qattention' % self._name,
-                         transforms.ToTensor()(visualise_voxel(
-                             self._vis_voxel_grid.detach().cpu().numpy(),
-                             self._vis_translation_qvalue.detach().cpu().numpy(),
-                             self._vis_max_coordinate.detach().cpu().numpy(),
-                             self._vis_gt_coordinate.detach().cpu().numpy())))
-        ]
-
-        for n, v in self._summaries.items():
-            summaries.append(ScalarSummary('%s/%s' % (self._name, n), v))
-
-        for (name, crop) in (self._crop_summary):
-            crops = (torch.cat(torch.split(crop, 3, dim=1), dim=3) + 1.0) / 2.0
-            summaries.extend([
-                ImageSummary('%s/crops/%s' % (self._name, name), crops)])
-
-        for tag, param in self._q.named_parameters():
-            # assert not torch.isnan(param.grad.abs() <= 1.0).all()
-            summaries.append(
-                HistogramSummary('%s/gradient/%s' % (self._name, tag),
-                                 param.grad))
-            summaries.append(
-                HistogramSummary('%s/weight/%s' % (self._name, tag),
-                                 param.data))
-
-        return summaries
+        # Disabled summaries - return empty list
+        return []
 
     def act_summaries(self) -> List[Summary]:
-        return [
-            ImageSummary('%s/act_Qattention' % self._name,
-                         transforms.ToTensor()(visualise_voxel(
-                             self._act_voxel_grid.cpu().numpy(),
-                             self._act_qvalues.cpu().numpy(),
-                             self._act_max_coordinate.cpu().numpy())))]
+        # Disabled summaries - return empty list
+        return []
 
     def load_weights(self, savedir: str):
         device = self._device if not self._training else torch.device('cuda:%d' % self._device)

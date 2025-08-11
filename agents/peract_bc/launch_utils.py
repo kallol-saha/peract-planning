@@ -238,13 +238,17 @@ def fill_replay(cfg: DictConfig,
     print("FILLING REPLAY !!!!")
     for d_idx in range(num_demos):
         # load demo from disk
-        demo = rlbench_utils.get_stored_demos(
-            amount=1, image_paths=False,
-            dataset_root=cfg.rlbench.demo_path,
-            variation_number=-1, task_name=task,
-            obs_config=obs_config,
-            random_selection=False,
-            from_episode_number=d_idx)[0]
+        try:
+            demo = rlbench_utils.get_stored_demos(
+                amount=1, image_paths=False,
+                dataset_root=cfg.rlbench.demo_path,
+                variation_number=-1, task_name=task,
+                obs_config=obs_config,
+                random_selection=False,
+                from_episode_number=d_idx)[0]
+        except Exception as e:
+            print(f"Error loading demo {d_idx}: {e}")
+            continue
 
         descs = demo._observations[0].misc['descriptions']
 

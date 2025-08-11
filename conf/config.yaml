@@ -4,25 +4,25 @@ ddp:
     num_devices: 1
 
 rlbench:
-    task_name: "multi"
+    task_name: "put_groceries_in_cupboard"
     tasks: [put_groceries_in_cupboard]
     # tasks: [open_drawer]
     variation_number: -1        # -1 for all variations
-    demos: 2                  # Make sure this is not more that the number of demos in the dataset
-    demo_path: /data/kallol/PerAct/peract_data/   # Training dataset
+    demos: 95                  # Make sure this is not more that the number of demos in the dataset
+    demo_path: /data/ModelBasedPlanning/PerAct/peract_data/train/   # Training dataset
     episode_length: 25
     cameras: [front,left_shoulder,right_shoulder,wrist]
-    camera_resolution: [256, 256]
+    camera_resolution: [128, 128]
     scene_bounds: [-0.3, -0.5, 0.6, 0.7, 0.5, 1.6]
     include_lang_goal_in_obs: True
 
 replay:
-    batch_size: 2
+    batch_size: 4
     timesteps: 1
     prioritisation: False
     task_uniform: True # uniform sampling of tasks for multi-task buffers
     use_disk: True          # Whether the replay buffer should be saved to disk and then loaded back for training.
-    path: '/data/kallol/PerAct/peract_train_log/replay' # only used when use_disk is True, this is where the replay buffer data will be saved.
+    path: '/data/ModelBasedPlanning/PerAct/peract_train_log/replay' # only used when use_disk is True, this is where the replay buffer data will be saved.
     max_parallel_processes: 32
 
 framework:
@@ -31,19 +31,19 @@ framework:
     train_envs: 1
     replay_ratio: ${replay.batch_size}
     transitions_before_train: 200
-    tensorboard_logging: True
-    csv_logging: True
+    tensorboard_logging: False
+    csv_logging: False
     training_iterations: 40000
     gpu: 0
     env_gpu: 0
-    logdir: '/data/kallol/PerAct/peract_train_log/'
+    logdir: '/data/ModelBasedPlanning/PerAct/peract_train_log/'
     logging_level: 20 # https://docs.python.org/3/library/logging.html#levels
     seeds: 1
     start_seed: 0
     load_existing_weights: False
     num_weights_to_keep: 60 # older checkpoints will be deleted chronologically
     num_workers: 0
-    record_every_n: 5
+    record_every_n: 0
 
 defaults:
     - method: PERACT_BC

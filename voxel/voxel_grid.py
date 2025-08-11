@@ -169,12 +169,14 @@ class VoxelGrid(nn.Module):
 
         _, num_coords, _ = voxel_indices.shape
         # BS x N x (num_batch_dims + 2)
-        voxel_indices = torch.repeat_interleave(voxel_indices, self._batch_size, dim=0)
+        if voxel_indices.shape[0] == 1:
+            voxel_indices = torch.repeat_interleave(voxel_indices, self._batch_size, dim=0)
         all_indices = torch.cat([
             self._tiled_batch_indices[:, :num_coords], voxel_indices], -1)
 
         # BS x N x 4
-        voxel_values = torch.repeat_interleave(voxel_values, self._batch_size, dim=0)
+        if voxel_values.shape[0] == 1:
+            voxel_values = torch.repeat_interleave(voxel_values, self._batch_size, dim=0)
         voxel_values_pruned_flat = torch.cat(
             [voxel_values, self._ones_max_coords[:, :num_coords]], -1)
 

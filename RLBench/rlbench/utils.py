@@ -123,6 +123,7 @@ def get_stored_demos(amount: int, image_paths: bool, dataset_root: str,
                 listdir(wrist_depth_f)) == len(listdir(front_rgb_f)) == len(
                 listdir(front_depth_f))):
             raise RuntimeError('Broken dataset assumption')
+            # continue
 
         for i in range(num_steps):
             # descriptions
