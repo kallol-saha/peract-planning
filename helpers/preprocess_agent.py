@@ -44,44 +44,12 @@ class PreprocessAgent(Agent):
         return act_res
 
     def update_summaries(self) -> List[Summary]:
-        prefix = 'inputs'
-        demo_f = self._replay_sample['demo'].float()
-        demo_proportion = demo_f.mean()
-        tile = lambda x: torch.squeeze(
-            torch.cat(x.split(1, dim=1), dim=-1), dim=1)
-        sums = [
-            ScalarSummary('%s/demo_proportion' % prefix, demo_proportion),
-            HistogramSummary('%s/low_dim_state' % prefix,
-                    self._replay_sample['low_dim_state']),
-            HistogramSummary('%s/low_dim_state_tp1' % prefix,
-                    self._replay_sample['low_dim_state_tp1']),
-            ScalarSummary('%s/low_dim_state_mean' % prefix,
-                    self._replay_sample['low_dim_state'].mean()),
-            ScalarSummary('%s/low_dim_state_min' % prefix,
-                    self._replay_sample['low_dim_state'].min()),
-            ScalarSummary('%s/low_dim_state_max' % prefix,
-                    self._replay_sample['low_dim_state'].max()),
-            ScalarSummary('%s/timeouts' % prefix,
-                    self._replay_sample['timeout'].float().mean()),
-        ]
-
-        for k, v in self._replay_sample.items():
-            if 'rgb' in k or 'point_cloud' in k:
-                if 'rgb' in k:
-                    # Convert back to 0 - 1
-                    v = (v + 1.0) / 2.0
-                sums.append(ImageSummary('%s/%s' % (prefix, k), tile(v)))
-
-        if 'sampling_probabilities' in self._replay_sample:
-            sums.extend([
-                HistogramSummary('replay/priority',
-                                 self._replay_sample['sampling_probabilities']),
-            ])
-        sums.extend(self._pose_agent.update_summaries())
-        return sums
+        # Disabled summaries - return empty list
+        return []
 
     def act_summaries(self) -> List[Summary]:
-        return self._pose_agent.act_summaries()
+        # Disabled summaries - return empty list
+        return []
 
     def load_weights(self, savedir: str):
         # print("!!!!!!!!!!!!!!!!!!! LOADING WEIGHTS: ", savedir)
