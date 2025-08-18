@@ -33,6 +33,20 @@ class CircleCameraMotion(CameraMotion):
         self.origin.rotate([0, 0, self.speed])
 
 
+class FixedCameraMotion(CameraMotion):
+    """Camera motion class that keeps the camera at a fixed pose."""
+    
+    def __init__(self, cam: VisionSensor, origin: Dummy,
+                 init_rotation: float = np.deg2rad(0)):
+        super().__init__(cam)
+        self.origin = origin
+        self.origin.rotate([0, 0, init_rotation])
+
+    def step(self):
+        # Do nothing - camera stays fixed
+        pass
+
+
 class TaskRecorder(object):
 
     def __init__(self, env: Environment, cam_motion: CameraMotion, fps=30):

@@ -17,7 +17,7 @@ from yarr.envs.env import Env
 from yarr.utils.rollout_generator import RolloutGenerator
 from yarr.utils.log_writer import LogWriter
 from yarr.utils.process_str import change_case
-from yarr.utils.video_utils import CircleCameraMotion, TaskRecorder
+from yarr.utils.video_utils import CircleCameraMotion, FixedCameraMotion, TaskRecorder
 
 from pyrep.objects.dummy import Dummy
 from pyrep.objects.vision_sensor import VisionSensor
@@ -146,7 +146,11 @@ class _IndependentEnvRunner(_EnvRunner):
             cam.set_pose(cam_placeholder.get_pose())
             cam.set_parent(cam_placeholder)
 
-            cam_motion = CircleCameraMotion(cam, Dummy('cam_cinematic_base'), rec_cfg.rotate_speed)
+            # Use FixedCameraMotion if rotate_speed is 0, otherwise use CircleCameraMotion
+            if rec_cfg.rotate_speed == 0:
+                cam_motion = FixedCameraMotion(cam, Dummy('cam_cinematic_base'))
+            else:
+                cam_motion = CircleCameraMotion(cam, Dummy('cam_cinematic_base'), rec_cfg.rotate_speed)
             tr = TaskRecorder(env, cam_motion, fps=rec_cfg.fps)
 
             env.env._action_mode.arm_action_mode.set_callable_each_step(tr.take_snap)

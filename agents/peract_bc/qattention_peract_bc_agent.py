@@ -24,7 +24,7 @@ from helpers.optim.lamb import Lamb
 
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from helpers.vis_utils import plot_voxel_grid_with_action_cubes, plot_pcd
+from helpers.vis_utils import plot_voxel_grid_with_action_cubes, plot_pcd, render_topk
 
 NAME = 'QAttentionAgent'
 
@@ -53,6 +53,16 @@ class QFunction(nn.Module):
         idxs = tensor_orig.view(b, c, -1).argmax(-1)
         indices = torch.cat([((idxs // h) // d), (idxs // h) % w, idxs % w], 1)
         return indices
+    
+    def _argmax_3d_topk(self, tensor_orig, k=5):
+        b, c, d, h, w = tensor_orig.shape  # c will be one
+        topk_vals_and_idxs = tensor_orig.view(b, c, -1).topk(k=k, dim=-1)
+        topk_idxs = topk_vals_and_idxs.indices
+        topk_vals = topk_vals_and_idxs.values
+        idxs = tensor_orig.view(b, c, -1).argmax(-1)
+        indices = torch.cat([((idxs // h) // d), (idxs // h) % w, idxs % w], 1)     # This is converting a single axis index to indices along each 3D coordinate
+        topk_indices = torch.cat([((topk_idxs // h) // d), (topk_idxs // h) % w, topk_idxs % w], 1)
+        return indices, topk_indices, topk_vals
 
     def choose_highest_action(self, q_trans, q_rot_grip, q_collision):
         coords = self._argmax_3d(q_trans)
@@ -70,6 +80,23 @@ class QFunction(nn.Module):
                  q_rot_grip[:, -2:].argmax(-1, keepdim=True)], -1)
             ignore_collision = q_collision[:, -2:].argmax(-1, keepdim=True)
         return coords, rot_and_grip_indicies, ignore_collision
+    
+    def choose_topk_actions(self, q_trans, q_rot_grip, q_collision, k=5):
+        coords, topk_coords, topk_vals = self._argmax_3d_topk(q_trans, k)
+        rot_and_grip_indicies = None
+        ignore_collision = None
+        if q_rot_grip is not None:
+            q_rot = torch.stack(torch.split(
+                q_rot_grip[:, :-2],
+                int(360 // self._rotation_resolution),
+                dim=1), dim=1)
+            rot_and_grip_indicies = torch.cat(
+                [q_rot[:, 0:1].argmax(-1),
+                 q_rot[:, 1:2].argmax(-1),
+                 q_rot[:, 2:3].argmax(-1),
+                 q_rot_grip[:, -2:].argmax(-1, keepdim=True)], -1)
+            ignore_collision = q_collision[:, -2:].argmax(-1, keepdim=True)
+        return coords, topk_coords, topk_vals, rot_and_grip_indicies, ignore_collision
 
     def forward(self, rgb_pcd, proprio, pcd, lang_goal_emb, lang_token_embs,
                 bounds=None, prev_bounds=None, prev_layer_voxel_grid=None):
@@ -588,8 +615,18 @@ class QAttentionPerActBCAgent(Agent):
 
         # argmax Q predictions
         coords, \
+        topk_coords, \
+        topk_vals, \
         rot_and_grip_indicies, \
-        ignore_collisions = self._q.choose_highest_action(q_trans, q_rot_grip, q_ignore_collisions)
+        ignore_collisions = self._q.choose_topk_actions(q_trans, q_rot_grip, q_ignore_collisions)
+
+        # batch_size is of no significance, since it is repeated, so we can just use [0]
+        # vox_grid[0] is (10, 100, 100, 100)
+        # topk_coords[0] is (3, 5)
+        # topk_vals[0] is (1, 5)
+        render_topk(vox_grid[0], topk_coords[0], topk_vals[0])
+
+        # NOTE: coords is (B, 3, K) for topk and (B, 3) for argmax
 
         rot_grip_action = rot_and_grip_indicies if q_rot_grip is not None else None
         ignore_collisions_action = ignore_collisions.int() if ignore_collisions is not None else None

@@ -361,8 +361,10 @@ class PerceiverVoxelLangEncoder(nn.Module):
         # concat proprio
         if self.low_dim_size > 0:
             p = self.proprio_preprocess(proprio)              # [B,4] -> [B,64]
-            # p = p.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).repeat(ins.shape[0], 1, d, h, w)
-            p = p.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).repeat(1, 1, d, h, w)   # TODO: Fix this for training and evaluation
+            if self.training:
+                p = p.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).repeat(1, 1, d, h, w)
+            else:
+                p = p.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1).repeat(ins.shape[0], 1, d, h, w)
             ins = torch.cat([ins, p], dim=1)                  # [B,128,20,20,20]
 
         # language ablation
@@ -408,8 +410,10 @@ class PerceiverVoxelLangEncoder(nn.Module):
         # option 2: add lang token embs as a sequence
         if self.lang_fusion_type == 'seq':
             l = self.lang_preprocess(lang_token_embs)         # [B,77,1024] -> [B,77,128]
-            # ins = torch.cat((l.repeat(ins.shape[0], 1, 1), ins), dim=1)                  # [B,8077,128]
-            ins = torch.cat((l, ins), dim=1)  # TODO: Fix this for training and evaluation
+            if self.training:
+                ins = torch.cat((l, ins), dim=1)
+            else:
+                ins = torch.cat((l.repeat(ins.shape[0], 1, 1), ins), dim=1)                  # [B,8077,128]
 
         # add pos encoding to language + flattened grid (the recommended way)
         if self.pos_encoding_with_lang:

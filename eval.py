@@ -111,7 +111,7 @@ def eval_seed(train_cfg,
     # evaluate all checkpoints (0, 1000, ...) which don't have results, i.e. validation phase
     if eval_cfg.framework.eval_type == 'missing':
         weight_folders = os.listdir(weightsdir)
-        weight_folders = sorted(map(int, weight_folders))
+        weight_folders = sorted(map(int, weight_folders), reverse=True)  # Reverse to start from highest weight
 
         env_data_csv_file = os.path.join(logdir, 'eval_data.csv')
         if os.path.exists(env_data_csv_file):
@@ -155,7 +155,7 @@ def eval_seed(train_cfg,
     elif eval_cfg.framework.eval_type == 'last':
         weight_folders = os.listdir(weightsdir)
         weight_folders = sorted(map(int, weight_folders))
-        weight_folders = [weight_folders[-1]]
+        weight_folders = [weight_folders[-1]]  # This already gets the highest weight
         print("Last weight:", weight_folders)
 
     # evaluate a specific checkpoint

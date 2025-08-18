@@ -8,6 +8,7 @@ from pytorch3d.structures import Pointclouds
 from pytorch3d import structures
 from tqdm import tqdm
 import imageio
+import os
 
 from pytorch3d.renderer import (
     FoVPerspectiveCameras,
@@ -24,7 +25,7 @@ from pytorch3d.renderer import (
     RasterizationSettings,
 )
 
-def get_cube_point_cloud(side_length, center, color, points_per_face=100):
+def get_cube_point_cloud(side_length, center, color, points_per_face=120):
     """
     Generate points on the surface of a cube.
     
@@ -119,6 +120,71 @@ def voxel_points_and_features_from_voxel_grid(voxel_grid, action_voxels, action_
         # Compute how the voxel center z-coordinate (-2 element) is shifted when moving along the z-indices of the grid
         voxel_size = (voxel_grid[-2, 0, 0, 1] - voxel_grid[-2, 0, 0, 0]) * 2
         action_points, action_features = get_cube_point_cloud(voxel_size, action_voxel_center, action_colors[i])
+
+        points = np.vstack((points, action_points))
+        features = np.vstack((features, action_features))
+
+    return points, features
+
+def voxel_points_and_features_from_topk(voxel_grid, topk_coords, topk_vals):
+    """
+    Convert voxel grid to point cloud and features
+    Args:
+        voxel_grid: Voxel grid tensor/array of shape (features, X, Y, Z)
+        topk_coords: Topk voxel indices tensor/array of shape (3, k)
+        topk_vals: Topk voxel values tensor/array of shape (1, k)
+    Returns:
+        points: Point cloud tensor/array of shape (N, 3)
+    """
+
+    # Convert inputs to numpy arrays if they are torch tensors
+    if torch.is_tensor(voxel_grid):
+        voxel_grid = voxel_grid.detach().cpu().numpy()
+    if torch.is_tensor(topk_coords):
+        topk_coords = topk_coords.detach().cpu().numpy()
+    if torch.is_tensor(topk_vals):
+        topk_vals = topk_vals.detach().cpu().numpy()
+        
+    # Convert voxel grid to (X, Y, Z, features) format
+    if voxel_grid.shape[0] < voxel_grid.shape[-1]:  # If in (features, X, Y, Z) format
+        vis_grid = np.transpose(voxel_grid, (1, 2, 3, 0))
+    else:
+        vis_grid = voxel_grid
+    
+    # Remove the action voxels from the voxel grid for point cloud visualization
+    for i in range(topk_coords.shape[1]):
+        vis_grid[topk_coords[0, i], 
+                 topk_coords[1, i], 
+                 topk_coords[2, i], 
+                 -1] = 0.
+    
+    # Mask out the points that are not in the voxel grid
+    mask = (vis_grid[..., -1] == 1)       #np.linalg.norm(vis_grid[..., :3], axis=-1) > 0
+    points = vis_grid[np.where(mask)][..., 6:9]  # Voxel center coordinates
+    features = vis_grid[np.where(mask)][..., 3:6]  # RGB colors
+    
+    # Go from -1 to 1 range to 0 to 1 range (for RGB)
+    features = (features + 1) / 2
+
+    for i in range(topk_coords.shape[1]):
+        # Get action voxel center coordinates
+        action_voxel_center = vis_grid[topk_coords[0, i], 
+                                        topk_coords[1, i], 
+                                        topk_coords[2, i], 
+                                        6:9]  # Voxel center coordinates
+        
+        # Compute how the voxel center z-coordinate (-2 element) is shifted when moving along the z-indices of the grid
+        voxel_size = (voxel_grid[-2, 0, 0, 1] - voxel_grid[-2, 0, 0, 0]) * 2
+
+        # Create colors based on topk values using plasma colormap
+        # Normalize values to 0-1 range for colormap, and invert it to get redder colors for higher values
+        norm_vals = (topk_vals[0] - topk_vals[0].min()) / (topk_vals[0].max() - topk_vals[0].min())
+        # Get plasma colors for each value
+        action_colors = plt.cm.autumn(norm_vals)
+        # Convert to RGB only (drop alpha channel) and scale to 0-255
+        action_colors = action_colors[:, :3]
+
+        action_points, action_features = get_cube_point_cloud(voxel_size * 2, action_voxel_center, action_colors[i])
 
         points = np.vstack((points, action_points))
         features = np.vstack((features, action_features))
@@ -310,6 +376,52 @@ def render_360_gif(structures: structures,
 
     imageio.mimsave(output_file, images, duration=frames // fps)
     print(f"Saved GIF to: {output_file}")
+
+def render_topk(voxel_grid, topk_coords, topk_vals, save_dir = 'media/topk_renders'):
+    """
+    Render the topk actions in the voxel grid.
+    
+    Args:
+        voxel_grid: Voxel grid of shape (10, 100, 100, 100)
+        topk_coords: Top-k coordinates of shape (3, 5) 
+        topk_vals: Top-k values of shape (1, 5)
+        save_dir: Directory to save the output gif
+    """
+    # Create save directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Count existing gifs in directory
+    existing_gifs = len([f for f in os.listdir(save_dir) if f.endswith('.gif')])
+    gif_number = existing_gifs + 1
+
+    # Create a point cloud from the voxel grid
+    points, features = voxel_points_and_features_from_topk(voxel_grid, topk_coords, topk_vals)
+
+    device = torch.device('cuda')
+
+    # convert to tensor if it is not already
+    points = torch.tensor(points, dtype=torch.float32, device=device)
+    features = torch.tensor(features, dtype=torch.float32, device=device)
+
+    point_cloud = Pointclouds(
+        points=[points.to(device)],
+        features=[features]
+    ).to(device)
+
+    output_path = os.path.join(save_dir, f'render_{gif_number}.gif')
+
+    render_360_gif(point_cloud, 
+                   output_path,
+                   image_size=1024,
+                   light_location=[0, 0, -3],
+                   fps=60, 
+                   dist=1., 
+                   elev=40,
+                   point_radius=0.005,
+                   center_of_rotation=None,   
+                   azimuth_range=(0, 360, 2),
+                   up_vector=[0, 0, 1],
+                   fov=90)
 
 def make_line(axis, length, density, color):
     """
