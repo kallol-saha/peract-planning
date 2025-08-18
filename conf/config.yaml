@@ -4,8 +4,8 @@ ddp:
     num_devices: 1
 
 rlbench:
-    task_name: "put_groceries_in_cupboard"
-    tasks: [put_groceries_in_cupboard]
+    task_name: "put_all_groceries_in_cupboard"
+    tasks: [put_all_groceries_in_cupboard]
     # tasks: [open_drawer]
     variation_number: -1        # -1 for all variations
     demos: 95                  # Make sure this is not more that the number of demos in the dataset
