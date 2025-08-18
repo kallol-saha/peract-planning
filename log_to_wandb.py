@@ -9,7 +9,34 @@ from pytorch3d.structures import Pointclouds
 
 from helpers.vis_utils import render_360_gif, voxel_points_and_features_from_voxel_grid
 
-wandb.init(project="PerAct_Planning_Single_Object", name=f"run_1")
+# Helper function to find run ID by name
+def find_run_id(project_name, run_name):
+    api = wandb.Api()
+    runs = api.runs(project_name)
+    for run in runs:
+        if run.name == run_name:
+            return run.id
+    return None
+
+# Find your run ID (uncomment and run once to get the ID)
+# run_id = find_run_id("PerAct_Planning_Single_Object", "run_1")
+# print(f"Run ID for 'run_1': {run_id}")
+
+# Option 1: Resume by specific run ID
+# wandb.init(project="PerAct_Planning_Single_Object", id="YOUR_RUN_ID_HERE", resume="must")
+
+# Option 2: Resume by run name (if you know the exact name):
+# wandb.init(project="PerAct_Planning_Single_Object", name="run_1", resume="must")
+
+# Option 3: Automatic resume - finds the most recent run with the same name
+run_name = "run_1"
+run_id = find_run_id("PerAct_Planning_Single_Object", run_name)
+if run_id:
+    print(f"Resuming run: {run_name} (ID: {run_id})")
+    wandb.init(project="PerAct_Planning_Single_Object", id=run_id, resume="must")
+else:
+    print(f"Creating new run: {run_name}")
+    wandb.init(project="PerAct_Planning_Single_Object", name=run_name)
 
 weights_dir = '/data/ModelBasedPlanning/PerAct/peract_train_log/put_groceries_in_cupboard/PERACT_BC/seed0/weights'
 all_epochs = os.listdir(weights_dir)
@@ -20,7 +47,7 @@ all_epochs = [int(epoch) for epoch in all_epochs]
 all_epochs.sort()
 
 
-for epoch_num in tqdm(all_epochs[:40]):
+for epoch_num in tqdm(all_epochs[40:]):
     data = np.load(os.path.join(weights_dir, f'{epoch_num}',f'voxel_grid_{epoch_num}.npz'), 
                 allow_pickle=True)
 
