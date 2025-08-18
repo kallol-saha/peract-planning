@@ -38,7 +38,7 @@ else:
     print(f"Creating new run: {run_name}")
     wandb.init(project="PerAct_Planning_Single_Object", name=run_name)
 
-weights_dir = '/data/ModelBasedPlanning/PerAct/peract_train_log/put_groceries_in_cupboard/PERACT_BC/seed0/weights'
+weights_dir = '/data/kallol/PerAct/peract_train_log/multi/PERACT_BC/seed0/weights'
 all_epochs = os.listdir(weights_dir)
 # COnvert list of strs to list of ints:
 all_epochs = [int(epoch) for epoch in all_epochs]
@@ -46,8 +46,7 @@ all_epochs = [int(epoch) for epoch in all_epochs]
 # Sort the list of epochs:
 all_epochs.sort()
 
-
-for epoch_num in tqdm(all_epochs[40:]):
+for epoch_num in tqdm(all_epochs):
     data = np.load(os.path.join(weights_dir, f'{epoch_num}',f'voxel_grid_{epoch_num}.npz'), 
                 allow_pickle=True)
 
