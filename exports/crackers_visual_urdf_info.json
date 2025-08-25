@@ -1,0 +1,17 @@
+{
+  "mesh_file": "crackers_visual.obj",
+  "mesh_path": "./exports/crackers_visual.obj",
+  "color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0,
+    "a": 0.5
+  },
+  "texture": {
+    "texture_id": 2180015,
+    "texture_file": "crackers_visual.png",
+    "texture_path": "./exports/crackers_visual.png"
+  },
+  "object_name": "crackers_visual",
+  "shape_name": "crackers_visual"
+}
